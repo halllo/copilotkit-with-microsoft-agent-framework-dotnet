@@ -2,6 +2,8 @@
 
 A simple vanilla JavaScript chat interface to communicate with the Microsoft Agent Framework AG-UI endpoint.
 
+For a dotnet client, look at [/microsoft/agent-framework/dotnet/samples/AGUIClientServer/AGUIClient](https://github.com/microsoft/agent-framework/tree/main/dotnet/samples/AGUIClientServer/AGUIClient).
+
 ## Features
 
 - Clean, modern chat interface
