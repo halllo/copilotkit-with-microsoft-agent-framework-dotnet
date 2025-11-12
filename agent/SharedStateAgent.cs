@@ -26,8 +26,41 @@ internal sealed class SharedStateAgent : DelegatingAIAgent
         AgentRunOptions? options = null,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        if (options is not ChatClientAgentRunOptions { ChatOptions.AdditionalProperties: { } properties } chatRunOptions ||
-            !properties.TryGetValue("ag_ui_state", out JsonElement state))
+        // Check if we should use state management
+        if (options is not ChatClientAgentRunOptions { ChatOptions.AdditionalProperties: { } properties } chatRunOptions)
+        {
+            await foreach (var update in InnerAgent.RunStreamingAsync(messages, thread, options, cancellationToken).ConfigureAwait(false))
+            {
+                yield return update;
+            }
+            yield break;
+        }
+
+        if (!properties.TryGetValue("ag_ui_state", out JsonElement state)
+            || state.ValueKind == JsonValueKind.Undefined
+            || state.ValueKind == JsonValueKind.Null)
+        {
+            await foreach (var update in InnerAgent.RunStreamingAsync(messages, thread, options, cancellationToken).ConfigureAwait(false))
+            {
+                yield return update;
+            }
+            yield break;
+        }
+
+        // Additional safety check: ensure GetRawText() won't throw
+        string? stateJson = null;
+        bool canGetStateJson = false;
+        try
+        {
+            stateJson = state.GetRawText();
+            canGetStateJson = true;
+        }
+        catch
+        {
+            // If we can't get the raw text, we'll fallback to simple agent run
+        }
+
+        if (!canGetStateJson || stateJson == null)
         {
             await foreach (var update in InnerAgent.RunStreamingAsync(messages, thread, options, cancellationToken).ConfigureAwait(false))
             {
@@ -53,7 +86,7 @@ internal sealed class SharedStateAgent : DelegatingAIAgent
             ChatRole.System,
             [
                 new TextContent("Here is the current state in JSON format:"),
-                new TextContent(state.GetRawText()),
+                new TextContent(stateJson),
                 new TextContent("The new state is:")
             ]);
 

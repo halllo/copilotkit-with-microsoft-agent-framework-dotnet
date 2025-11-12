@@ -12,7 +12,21 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Services.ConfigureHttpJsonOptions(options => options.SerializerOptions.TypeInfoResolverChain.Add(ProverbsAgentSerializerContext.Default));
 builder.Services.AddAGUI();
 
+// Add CORS support for vanilla chat client
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
+
 WebApplication app = builder.Build();
+
+// Enable CORS
+app.UseCors("AllowAll");
 
 // Create the agent factory and map the AG-UI agent endpoint
 var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
@@ -56,11 +70,13 @@ public class ProverbsAgentFactory
                 "or get it using: gh auth token");
 
         _openAiClient = new(
-            new System.ClientModel.ApiKeyCredential(githubToken),
-            new OpenAIClientOptions
-            {
-                Endpoint = new Uri("https://models.inference.ai.azure.com")
-            });
+            new System.ClientModel.ApiKeyCredential(githubToken)
+            //,
+            //new OpenAIClientOptions
+            //{
+            //    Endpoint = new Uri("https://models.inference.ai.azure.com")
+            //}
+            );
     }
 
     public AIAgent CreateProverbsAgent()

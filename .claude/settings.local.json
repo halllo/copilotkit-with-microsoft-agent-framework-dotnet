@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:docs.ag-ui.com)",
+      "Bash(curl:*)",
+      "WebFetch(domain:webflow.copilotkit.ai)",
+      "Bash(cat:*)",
+      "Bash(find:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet run)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
